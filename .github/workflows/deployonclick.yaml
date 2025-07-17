@@ -1,11 +1,13 @@
-name: Deploy on Dockerhub when Test is Completed
+name: Deploy on Dockerhub on Click
 
 on:
-  workflow_run:
-    workflows: ['Test FastAPI']
-    types:
-      - completed
-
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker tag to deploy'
+        required: true
+        default: 'latest'
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -31,5 +33,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:1.0.0
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:${{ github.event.inputs.tag }}
           
