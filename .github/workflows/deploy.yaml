@@ -39,6 +39,7 @@ jobs:
         with:
           host: ${{ secrets.SSH_SERVER_HOST }}
           username: ${{ secrets.SSH_SERVER_USER }}
+          # SSH private key
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
