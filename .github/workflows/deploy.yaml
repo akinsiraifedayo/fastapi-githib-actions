@@ -31,5 +31,18 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:1.0.0
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+
+      - name: SSH & Deploy to Server
+        if: success()
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_SERVER_HOST }}
+          username: ${{ secrets.SSH_SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+            docker stop pythonapp || true
+            docker rm pythonapp || true
+            docker run -d --name pythonapp -p 8000:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
           
