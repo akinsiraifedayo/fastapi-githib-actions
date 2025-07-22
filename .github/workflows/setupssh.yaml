@@ -1,4 +1,4 @@
-name: SSH via Cloudflare Access
+name: SSH Parrot
 
 on:
   workflow_dispatch:
@@ -13,28 +13,27 @@ jobs:
 
       - name: Install cloudflared
         run: |
-          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared-linux-amd64.deb
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin/cloudflared
 
-      - name: Setup SSH key
+      - name: Authenticate cloudflared
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          mkdir ~/.cloudflared
+          echo "{\"TunnelToken\":\"\"}" > ~/.cloudflared/creds.json  # Dummy, needed for dir
+          echo -e "tunnel: dummy\ncredentials-file: ~/.cloudflared/creds.json\n" > ~/.cloudflared/config.yml
+          export CF_ACCESS_CLIENT_ID=${{ secrets.CF_CLIENT_ID }}
+          export CF_ACCESS_CLIENT_SECRET=${{ secrets.CF_CLIENT_SECRET }}
+          cloudflared access ssh-config --hostname github-deploy.siteownr.com --short-lived-cert
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_CLIENT_SECRET }}
 
-      - name: Add known host
+      - name: SSH and Deploy
         run: |
-          cloudflared access ssh-config --hostname github-deploy.siteownr.com --short-lived-cert > ssh_config
-          echo "Host github-deploy.siteownr.com" >> ssh_config
-          echo "  User ${{ secrets.SSH_SERVER_USER }}" >> ssh_config
-          echo "  IdentityFile ~/.ssh/id_ed25519" >> ssh_config
-          mkdir -p ~/.ssh
-          mv ssh_config ~/.ssh/config
-          chmod 600 ~/.ssh/config
-
-      - name: SSH into server via Cloudflare
-        run: |
-          ssh github-deploy.siteownr.com "docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest && \
-          docker stop pythonapp || true && \
-          docker rm pythonapp || true && \
-          docker run -d --name pythonapp -p 8000:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest"
+          ssh -o StrictHostKeyChecking=no github-deploy.siteownr.com << 'EOF'
+            docker pull yourdockerhubuser/pythonapp:latest
+            docker stop pythonapp || true
+            docker rm pythonapp || true
+            docker run -d --name pythonapp -p 8000:8000 yourdockerhubuser/pythonapp:latest
+          EOF
