@@ -32,8 +32,8 @@ jobs:
       - name: SSH and Deploy
         run: |
           ssh -o StrictHostKeyChecking=no github-deploy.siteownr.com << 'EOF'
-            docker pull yourdockerhubuser/pythonapp:latest
+            docker pull djangowiz/pythonapp:1.0.1
             docker stop pythonapp || true
             docker rm pythonapp || true
-            docker run -d --name pythonapp -p 8000:8000 yourdockerhubuser/pythonapp:latest
+            docker run -d --name pythonapp -p 8000:8000 djangowiz/pythonapp:1.0.1
           EOF
