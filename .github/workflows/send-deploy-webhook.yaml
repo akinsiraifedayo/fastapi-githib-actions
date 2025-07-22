@@ -13,6 +13,8 @@ jobs:
 
       - name: Trigger deployment webhook
         run: |
+          echo "${{ vars.PARROT_WEBHOOK_SECRET }}"
           curl -X POST https://webhook.siteownr.com/deploy \
             -H "Content-Type: application/json" \
-            -d '{"secret": "'"${{ vars.PARROT_WEBHOOK_SECRET }}"'"}'
+            -d '{"secret": "${{ vars.PARROT_WEBHOOK_SECRET }}"}'
+
