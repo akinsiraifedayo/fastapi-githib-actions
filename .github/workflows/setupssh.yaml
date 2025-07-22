@@ -17,6 +17,12 @@ jobs:
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin/cloudflared
 
+      - name: Test Cloudflare SSH Tunnel
+        run: cloudflared access ssh --hostname github-deploy.siteownr.com --id $CF_ACCESS_CLIENT_ID --secret $CF_ACCESS_CLIENT_SECRET --command 'echo Tunnel OK'
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_CLIENT_SECRET }}
+
       - name: Configure SSH with Cloudflare Access
         run: |
           mkdir -p ~/.ssh
