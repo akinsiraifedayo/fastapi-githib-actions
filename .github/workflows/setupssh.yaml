@@ -1,0 +1,31 @@
+name: SSH Parrot
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: python-environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SSH_SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER_USER }}@${{ secrets.SSH_SERVER_HOST }} << 'EOF'
+            echo "Connected via GitHub Actions!"
+            docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+            docker stop pythonapp || true
+            docker rm pythonapp || true
+            docker run -d --name pythonapp -p 8000:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+          EOF
+          
