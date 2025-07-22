@@ -17,28 +17,22 @@ jobs:
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin/cloudflared
 
-      - name: Generate short-lived SSH cert and config
+      - name: Authenticate cloudflared
         run: |
           mkdir -p ~/.ssh
           mkdir -p ~/.cloudflared
-          
           cloudflared access ssh-config \
             --hostname github-deploy.siteownr.com \
-            --short-lived-cert > ~/.ssh/config
-
-          echo "" > ~/.ssh/known_hosts
+            --short-lived-cert \
+            > ~/.ssh/config
+          chmod 600 ~/.ssh/config
         env:
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_CLIENT_SECRET }}
 
-      - name: Check Port Connectivity
-        run: |
-          ping -c 2 github-deploy.siteownr.com || echo "Ping failed"
-          nc -zv github-deploy.siteownr.com 22 || echo "Port 22 closed or tunnel required"
-
       - name: SSH and Deploy
         run: |
-          ssh -vvv github-deploy.siteownr.com << 'EOF'
+          ssh -vvv -o StrictHostKeyChecking=no github-deploy.siteownr.com << 'EOF'
             echo "✅ Connected to github-deploy.siteownr.com"
             docker pull djangowiz/pythonapp:1.0.1
             docker stop pythonapp || true
