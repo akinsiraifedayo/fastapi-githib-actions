@@ -28,10 +28,15 @@ jobs:
         env:
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_CLIENT_SECRET }}
-
+          
+      - name: Check connectivity
+        run: |
+          ping -c 4 github-deploy.siteownr.com || echo "Ping failed"
+          nc -zv github-deploy.siteownr.com 22 || echo "Port 22 closed"
+          
       - name: SSH and Deploy
         run: |
-          timeout 30s ssh -o StrictHostKeyChecking=no github-deploy.siteownr.com << 'EOF'
+          timeout 30s ssh -vvv -o StrictHostKeyChecking=no github-deploy.siteownr.com << 'EOF'
             echo "✅ Connected to github-deploy.siteownr.com"
             docker pull djangowiz/pythonapp:1.0.1
             docker stop pythonapp || true
