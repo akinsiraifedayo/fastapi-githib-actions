@@ -1,4 +1,4 @@
-name: SSH Parrot
+name: Call Parrot Webhook
 
 on:
   workflow_dispatch:
