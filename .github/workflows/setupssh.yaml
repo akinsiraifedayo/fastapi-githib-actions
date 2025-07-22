@@ -31,7 +31,7 @@ jobs:
 
       - name: SSH and Deploy
         run: |
-          ssh -o StrictHostKeyChecking=no github-deploy.siteownr.com << 'EOF'
+          timeout 30s ssh -o StrictHostKeyChecking=no github-deploy.siteownr.com << 'EOF'
             docker pull djangowiz/pythonapp:1.0.1
             docker stop pythonapp || true
             docker rm pythonapp || true
