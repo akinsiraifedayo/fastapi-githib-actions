@@ -19,4 +19,4 @@ ENV NAME=olympicson-fastapi-docker
 LABEL maintainer="olympicson <akinsiraolympicson@gmail.com>"
 
 # Run Uvicorn (certs will be mounted at runtime)
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/etc/ssl/certs/privkey.pem", "--ssl-certfile=/etc/ssl/certs/cert.pem"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/etc/ssl/certs/private/privkey.pem", "--ssl-certfile=/etc/ssl/certs/private/cert.pem"]

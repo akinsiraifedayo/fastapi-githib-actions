@@ -45,5 +45,5 @@ jobs:
             docker run -d \
               --name pythonapp \
               -p 443:443 \
-              -v /etc/ssl/certs:/etc/ssl/certs \
+              -v /etc/ssl/certs/private:/etc/ssl/certs/private \
               ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
