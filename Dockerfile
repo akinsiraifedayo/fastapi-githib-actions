@@ -15,6 +15,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # from local to work dir in container
 COPY ./app .
 
+COPY cert.pem /app/cert.pem
+COPY privkey.pem /app/privkey.pem
+EXPOSE 443
+
+
 # expose port 80 so it can be accessed
 EXPOSE 80
 
@@ -25,4 +30,4 @@ ENV NAME=olympicson-fastapi-docker
 LABEL maintainer="olympicson <akinsiraolympicson@gmail.com>"
 
 # finally run the server with uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/app/privkey.pem", "--ssl-certfile=/app/cert.pem"]

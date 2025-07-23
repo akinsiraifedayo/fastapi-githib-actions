@@ -19,6 +19,15 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "Extracted version: $VERSION"
 
+      - name: Decode SSL cert and key
+        run: |
+          echo "$SSL_CERT_B64" | base64 -d > cert.pem
+          echo "$SSL_KEY_B64" | base64 -d > privkey.pem
+        env:
+          SSL_CERT_B64: ${{ secrets.SSL_CERT_B64 }}
+          SSL_KEY_B64: ${{ secrets.SSL_KEY_B64 }}
+
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -47,4 +56,4 @@ jobs:
             docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
             docker stop pythonapp || true
             docker rm pythonapp || true
-            docker run -d --name pythonapp -p 8000:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+            docker run -d --name pythonapp -p 80:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
