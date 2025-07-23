@@ -56,4 +56,4 @@ jobs:
             docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
             docker stop pythonapp || true
             docker rm pythonapp || true
-            docker run -d --name pythonapp -p 80:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+            docker run -d --name pythonapp -p 443:443 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest

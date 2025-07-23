@@ -15,8 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # from local to work dir in container
 COPY ./app .
 
-COPY cert.pem /app/cert.pem
-COPY privkey.pem /app/privkey.pem
+COPY ./cert.pem /app/cert.pem
+COPY ./privkey.pem /app/privkey.pem
 EXPOSE 443
 
 # set name env variable
