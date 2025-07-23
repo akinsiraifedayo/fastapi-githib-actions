@@ -19,10 +19,6 @@ COPY cert.pem /app/cert.pem
 COPY privkey.pem /app/privkey.pem
 EXPOSE 443
 
-
-# expose port 80 so it can be accessed
-EXPOSE 80
-
 # set name env variable
 ENV NAME=olympicson-fastapi-docker
 
