@@ -1,29 +1,22 @@
-
-# use python 3.10 docker image
+# Use python 3.10 docker image
 FROM python:3.10-slim
 
-# use the /app as working dir in container
+# Set working directory
 WORKDIR /app
 
-# copy the requirements.txt to working dir
+# Install dependencies
 COPY requirements.txt .
-
-# install all dependencies with pip install
 RUN pip install --no-cache-dir -r requirements.txt
 
-# copy main code in the current ./app directory 
-# from local to work dir in container
+# Copy application code
 COPY ./app .
 
-COPY ./cert.pem /app/cert.pem
-COPY ./privkey.pem /app/privkey.pem
+# Expose port 443 (HTTPS)
 EXPOSE 443
 
-# set name env variable
+# Environment variables
 ENV NAME=olympicson-fastapi-docker
-
-# set the maintainer label
 LABEL maintainer="olympicson <akinsiraolympicson@gmail.com>"
 
-# finally run the server with uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/app/privkey.pem", "--ssl-certfile=/app/cert.pem"]
+# Run Uvicorn (certs will be mounted at runtime)
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/etc/ssl/certs/privkey.pem", "--ssl-certfile=/etc/ssl/certs/cert.pem"]
