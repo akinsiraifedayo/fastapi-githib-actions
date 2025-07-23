@@ -15,53 +15,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Extract version from pyproject.toml
+        id: versioning
+        run: |
+          VERSION=$(grep '^version\s*=' pyproject.toml | head -1 | cut -d '"' -f2)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Extracted version: $VERSION"
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:${{ env.VERSION }}
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SSH_SERVER_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy via SSH
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_SERVER_USER }}@${{ secrets.SSH_SERVER_HOST }} << 'EOF'
-            echo "Connected via GitHub Actions!"
+      - name: SSH & Deploy to Server
+        if: success()
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_SERVER_HOST }}
+          username: ${{ secrets.SSH_SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
             docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
             docker stop pythonapp || true
             docker rm pythonapp || true
             docker run -d --name pythonapp -p 8000:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
-          EOF
-
-
-      # - name: SSH & Deploy to Server
-      #   if: success()
-      #   uses: appleboy/ssh-action@v1.0.0
-      #   with:
-      #     host: ${{ secrets.SSH_SERVER_HOST }}
-      #     username: ${{ secrets.SSH_SERVER_USER }}
-      #     # SSH private key
-      #     key: ${{ secrets.SERVER_SSH_KEY }}
-      #     script: |
-      #       docker pull ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
-      #       docker stop pythonapp || true
-      #       docker rm pythonapp || true
-      #       docker run -d --name pythonapp -p 8000:8000 ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
-          

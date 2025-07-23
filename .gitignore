@@ -1,3 +1,6 @@
+# sample files
+setup-on-cloudflare.md
+old_workflows/
+
 .pytest*
 __pycache*
-setup-on-cloudflare.md
