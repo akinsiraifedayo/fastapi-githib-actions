@@ -7,20 +7,31 @@ on:
       - completed
 
 jobs:
-  deploy:
+  prepare:
     runs-on: ubuntu-latest
-    environment: production
-
+    outputs:
+      version: ${{ steps.versioning.outputs.version }}
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Extract version
         id: versioning
         run: |
           VERSION=$(grep '^version\s*=' pyproject.toml | cut -d '"' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
+  build-and-push:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -33,8 +44,14 @@ jobs:
           push: true
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:latest
-            ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:${{ env.VERSION }}
+            ${{ vars.DOCKERHUB_USERNAME }}/pythonapp:${{ needs.prepare.outputs.version }}
 
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
