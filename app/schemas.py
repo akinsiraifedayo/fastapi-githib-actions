@@ -16,5 +16,5 @@ class Account(AccountBase):
         from_attributes = True
 
 class Transaction(BaseModel):
-    amount: De
+    amount: float
     description: Optional[str] = None
