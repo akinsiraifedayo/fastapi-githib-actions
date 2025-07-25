@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    command:
+      
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # db_backup:
+  #   image: postgres:15-alpine
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data:ro
+  #     - ./backups:/backups
+  #   command: >
+  #     bash -c 'while true; do
+  #       pg_dump -U myuser -h db -d mydatabase -Fc > /backups/backup_$$(date +%Y-%m-%d_%H-%M-%S).dump
+  #       sleep 86400;
+  #     done'
+  #   depends_on:
+  #     - db
+
+  # pythonapp:
+  #   image: djangowiz/pythonapp:latest
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - "443:443"
+  #   environment:
+  #     DATABASE_URL: postgresql+asyncpg://myuser:${DB_PASSWORD}@db:5432/mydatabase
+  #   volumes:
+  #     - /etc/ssl/certs/private/:/etc/ssl/certs/private/
+
+  pythonapp:
+    image: djangowiz/pythonapp:1.0.1
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://myuser:${DB_PASSWORD}@db:5432/mydatabase
+    volumes:
+      - /etc/ssl/certs/private/:/etc/ssl/certs/private/
+      # - ./app:/app
+      
+
+volumes:
+  postgres_data:
+
+
+
+
+  
